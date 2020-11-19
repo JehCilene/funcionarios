@@ -10,6 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
@@ -19,6 +20,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
+@Table(name = "funcionario")
 public class Funcionario {
 	
 	@GeneratedValue
@@ -49,6 +51,7 @@ public class Funcionario {
 	@JoinColumn(name = "cargo_id")	
 	private Cargo cargo;
 	
+
 	public Funcionario() {
 		
 	}

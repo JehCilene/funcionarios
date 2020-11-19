@@ -21,86 +21,76 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.br.cilene.funcionarios.dto.FuncionarioDto;
+import com.br.cilene.funcionarios.dto.funcionario.AdicionaFunciorioRequestDto;
+import com.br.cilene.funcionarios.dto.funcionario.FuncionarioDto;
+import com.br.cilene.funcionarios.models.Cargo;
 import com.br.cilene.funcionarios.models.Funcionario;
 import com.br.cilene.funcionarios.repositories.FuncionarioRepository;
 
 @RestController
-@RequestMapping(path="/funcionario")
+@RequestMapping(path = "/funcionario")
 public class FuncionarioResource {
-	
+
 	private FuncionarioRepository funcionarioRepository;
-	
-    @Autowired
-    private ModelMapper modelMapper;
+
+	@Autowired
+	private ModelMapper modelMapper;
 
 	public FuncionarioResource(FuncionarioRepository funcionarioRepository) {
 		super();
 		this.funcionarioRepository = funcionarioRepository;
 	}
-	
+
 	@PostMapping
-	public ResponseEntity<Funcionario> save(@Valid @RequestBody Funcionario funcionario){
+	public ResponseEntity<FuncionarioDto> save(@Valid @RequestBody AdicionaFunciorioRequestDto request) {
+		Funcionario funcionario = modelMapper.map(request, Funcionario.class);
 		funcionarioRepository.save(funcionario);
-		return new ResponseEntity<>(funcionario, HttpStatus.OK);
+		return new ResponseEntity<>(modelMapper.map(funcionario, FuncionarioDto.class), HttpStatus.OK);
 	}
-	
+
 	@GetMapping
-	public ResponseEntity<List<FuncionarioDto>> getAll(){
-		
+	public ResponseEntity<List<FuncionarioDto>> getAll() {
+
 		List<Funcionario> funcionarios = funcionarioRepository.findAll();
-        List<FuncionarioDto> mapeado = funcionarios.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());	
-        
-		/*
-		 * List<FuncionarioDto> mapeado2 = new ArrayList<>();
-		 * 
-		 * for(Funcionario funcionario : funcionarios) {
-		 * mapeado2.add(modelMapper.map(funcionario, FuncionarioDto.class)); }
-		 */
+		List<FuncionarioDto> mapeado = funcionarios.stream()
+				.map(funcionario -> modelMapper.map(funcionario, FuncionarioDto.class))
+				.collect(Collectors.toList());
+
 		return new ResponseEntity<>(mapeado, HttpStatus.OK);
 	}
-	
-	@GetMapping(path="/{id}")
-	public ResponseEntity<Optional<Funcionario>> getById(@PathVariable Integer id){
+
+	@GetMapping(path = "/{id}")
+	public ResponseEntity<FuncionarioDto> getById(@PathVariable Integer id) {
 		Optional<Funcionario> funcionario = funcionarioRepository.findById(id);
-		
-		if(funcionario.isPresent())
-			return new ResponseEntity<>(funcionario,HttpStatus.OK);
+
+		if (funcionario.isPresent())
+			return new ResponseEntity<>(modelMapper.map(funcionario, FuncionarioDto.class), HttpStatus.OK);
 		else
-			return new ResponseEntity<Optional<Funcionario>>(HttpStatus.NOT_FOUND);
+			return new ResponseEntity<FuncionarioDto>(HttpStatus.NOT_FOUND);
 	}
-	
-	@DeleteMapping(path="/{id}")
-	public ResponseEntity<Optional<Funcionario>> deleteById(@PathVariable Integer id){
-		
+
+	@DeleteMapping(path = "/{id}")
+	public ResponseEntity<FuncionarioDto> deleteById(@PathVariable Integer id) {
+
 		try {
 			funcionarioRepository.deleteById(id);
-			return new ResponseEntity<Optional<Funcionario>>(HttpStatus.OK);
+			return new ResponseEntity<FuncionarioDto>(HttpStatus.OK);
 		} catch (EmptyResultDataAccessException e) {
-			return new ResponseEntity<Optional<Funcionario>>(HttpStatus.NOT_FOUND);
+			return new ResponseEntity<FuncionarioDto>(HttpStatus.NOT_FOUND);
 		}
 	}
-	
-	@PutMapping(path="/{id}")
-	public ResponseEntity<Funcionario> update(@PathVariable Integer id, @RequestBody Funcionario newFuncionario){
-		return funcionarioRepository.findById(id)
-				.map(funcionario -> {
-					funcionario.setNome(newFuncionario.getNome());
-					funcionario.setIdade(newFuncionario.getIdade());
-					funcionario.setDataNascimento(newFuncionario.getDataNascimento());
-					funcionario.setDocumento(newFuncionario.getDocumento());
-					funcionario.setCargo(newFuncionario.getCargo());
-					Funcionario atualizado = funcionarioRepository.save(funcionario);
-					return ResponseEntity.ok().body(atualizado);
-				}).orElse(ResponseEntity.notFound().build());
-	}
-	
-	private FuncionarioDto convertToDto(Funcionario funcionario) {
-		FuncionarioDto postDto = modelMapper.map(funcionario, FuncionarioDto.class);
 
-	    return postDto;	
+	@PutMapping(path = "/{id}")
+	public ResponseEntity<FuncionarioDto> update(@PathVariable Integer id, @RequestBody FuncionarioDto newFuncionario) {
+		return funcionarioRepository.findById(id).map(funcionario -> {
+			funcionario.setNome(newFuncionario.getNome());
+			funcionario.setIdade(newFuncionario.getIdade());
+			funcionario.setDataNascimento(newFuncionario.getDataNascimento());
+			funcionario.setDocumento(newFuncionario.getDocumento());
+			funcionario.setCargo(modelMapper.map(newFuncionario.getCargo(), Cargo.class));
+			Funcionario atualizado = funcionarioRepository.save(funcionario);
+			return ResponseEntity.ok().body(modelMapper.map(atualizado, FuncionarioDto.class));
+		}).orElse(ResponseEntity.notFound().build());
 	}
-	
+
 }
