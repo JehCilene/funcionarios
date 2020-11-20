@@ -10,7 +10,7 @@ import org.hibernate.validator.constraints.Length;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-public class AdicionaFunciorioRequestDto {
+public class AtualizaFunciorioRequestDto {
 	
 	@NotEmpty
 	@Length(min = 5, max = 50)
@@ -26,7 +26,8 @@ public class AdicionaFunciorioRequestDto {
 	@NotNull
 	@Length(min = 5, max = 50)
 	private String documento;
-
+	
+	@NotNull
 	private int cargoId;
 	
 	@NotNull

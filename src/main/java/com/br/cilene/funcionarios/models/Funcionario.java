@@ -1,6 +1,8 @@
 package com.br.cilene.funcionarios.models;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -9,6 +11,8 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
@@ -25,11 +29,12 @@ public class Funcionario {
 	
 	@GeneratedValue
 	@Id
+	@Column(name = "funcionario_id")
 	private int id;
 	
 	@Column(name = "funcionario_name")
 	@NotEmpty
-	@Length(min = 5, max = 50)
+	@Length(max = 50)
 	private String nome;
 	
 	@Column(name = "funcionario_age")
@@ -44,27 +49,25 @@ public class Funcionario {
 	
 	@Column(name = "funcionario_document")
 	@NotNull
-	@Length(min = 5, max = 50)
+	@Length(max = 50)
 	private String documento;
 	
-	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST,CascadeType.REFRESH}, fetch = FetchType.EAGER)
 	@JoinColumn(name = "cargo_id")	
 	private Cargo cargo;
 	
-
-	public Funcionario() {
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST,CascadeType.REFRESH})
+    @JoinTable(name = "funcionario_departamento",
+            joinColumns = {
+                    @JoinColumn(name = "funcionario_id", referencedColumnName = "funcionario_id",
+                            nullable = false, updatable = false)},
+            inverseJoinColumns = {
+                    @JoinColumn(name = "departamento_id", referencedColumnName = "departamento_id",
+                            nullable = false, updatable = false)})
+    private Set<Departamento> departamentos = new HashSet<>();	
 		
-	}
 
-	public Funcionario(String nome, int idade, Date dataNascimento, String documento) {
-		super();
-		this.nome = nome;
-		this.idade = idade;
-		this.dataNascimento = dataNascimento;
-		this.documento = documento;
-	}
-
-	public int getId() {
+    public int getId() {
 		return id;
 	}
 
@@ -112,4 +115,15 @@ public class Funcionario {
 		this.cargo = cargo;
 	}
 
+	public Set<Departamento> getDepartamentos() {
+		return departamentos;
+	}
+
+	public void setDepartamentos(Set<Departamento> departamentos) {
+		this.departamentos = departamentos;
+	}
+
+	
+
+	
 }

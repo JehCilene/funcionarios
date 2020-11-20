@@ -9,23 +9,26 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 
 import org.hibernate.validator.constraints.Length;
 
 @Entity
+@Table(name = "cargo")
 public class Cargo {
 
 	@GeneratedValue
 	@Id
+	@Column(name = "cargo_id")
 	private int id;
 	
 	@Column(name = "cargo_name")
 	@NotEmpty
-	@Length(min = 5, max = 50)	
+	@Length(max = 50)	
 	private String nome;
 	
-	@OneToMany(mappedBy = "cargo", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "cargo", cascade =  {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH},fetch = FetchType.LAZY)
 	private List<Funcionario> funcionarios;
 	
 	public Cargo() {

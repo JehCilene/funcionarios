@@ -1,8 +1,10 @@
 package com.br.cilene.funcionarios.dto.funcionario;
 
 import java.util.Date;
+import java.util.Set;
 
-import com.br.cilene.funcionarios.dto.CargoDto;
+import com.br.cilene.funcionarios.dto.cargo.CargoDto;
+import com.br.cilene.funcionarios.dto.departamento.DepartamentoDto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class FuncionarioDto {
@@ -15,7 +17,15 @@ public class FuncionarioDto {
 	private Date dataNascimento;
 	private String documento;
 	private CargoDto cargo;
+	private Set<DepartamentoDto> departamentos;
 	
+	
+	public Set<DepartamentoDto> getDepartamentos() {
+		return departamentos;
+	}
+	public void setDepartamentos(Set<DepartamentoDto> departamentos) {
+		this.departamentos = departamentos;
+	}
 	public int getId() {
 		return id;
 	}
