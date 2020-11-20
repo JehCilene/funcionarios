@@ -1,9 +1,7 @@
 package com.br.cilene.funcionarios.resources;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.ConstraintViolationException;
@@ -26,8 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.br.cilene.funcionarios.dto.funcionario.AdicionaFunciorioRequestDto;
 import com.br.cilene.funcionarios.dto.funcionario.AtualizaFunciorioRequestDto;
 import com.br.cilene.funcionarios.dto.funcionario.FuncionarioDto;
-import com.br.cilene.funcionarios.models.Cargo;
-import com.br.cilene.funcionarios.models.Departamento;
+import com.br.cilene.funcionarios.exceptions.CargoInexsistenteException;
+import com.br.cilene.funcionarios.exceptions.DepartamentoInexsistenteException;
+import com.br.cilene.funcionarios.exceptions.DocumentoRepetidoException;
+import com.br.cilene.funcionarios.exceptions.UsuarioInexsistenteException;
 import com.br.cilene.funcionarios.models.Funcionario;
 import com.br.cilene.funcionarios.repositories.CargoRepository;
 import com.br.cilene.funcionarios.repositories.DepartamentoRepository;
@@ -39,8 +39,6 @@ import com.br.cilene.funcionarios.services.FuncionarioService;
 public class FuncionarioResource {
 
 	private FuncionarioRepository funcionarioRepository;
-	private DepartamentoRepository departamentoRepository;
-	private CargoRepository cargoRepository;
 	
 	@Autowired
 	private FuncionarioService funcionarioService;
@@ -53,8 +51,6 @@ public class FuncionarioResource {
 			CargoRepository cargoRepository) {
 		super();
 		this.funcionarioRepository = funcionarioRepository;
-		this.departamentoRepository = departamentoRepository;
-		this.cargoRepository = cargoRepository;
 	}
 
 	@PostMapping
@@ -67,7 +63,20 @@ public class FuncionarioResource {
 			else
 				return new ResponseEntity<FuncionarioDto>(HttpStatus.BAD_REQUEST);
 			
-		} catch (ConstraintViolationException e) {
+		} 
+		catch (CargoInexsistenteException e) {
+
+			return new ResponseEntity<FuncionarioDto>(HttpStatus.CONFLICT);
+		}		
+		catch (DepartamentoInexsistenteException e) {
+
+			return new ResponseEntity<FuncionarioDto>(HttpStatus.CONFLICT);
+		}		
+		catch (DocumentoRepetidoException e) {
+
+			return new ResponseEntity<FuncionarioDto>(HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+		catch (ConstraintViolationException e) {
 
 			return new ResponseEntity<FuncionarioDto>(HttpStatus.BAD_REQUEST);
 		}
@@ -107,33 +116,31 @@ public class FuncionarioResource {
 
 	@PutMapping(path = "/{id}")
 	public ResponseEntity<FuncionarioDto> update(@PathVariable Integer id, @RequestBody AtualizaFunciorioRequestDto newFuncionario) {
-		Set<Departamento> departamentos = new HashSet<>();
-		
-		for(Integer idDeparmento : newFuncionario.getDepartamentosId())
-		{
-			Optional<Departamento> departamento = departamentoRepository.findById(idDeparmento);
+		try {
+			FuncionarioDto funcionario = funcionarioService.AtualizaFuncionario(id, newFuncionario);
 			
-			if(!departamento.isPresent())
+			if(funcionario != null)
+				return new ResponseEntity<>(modelMapper.map(funcionario, FuncionarioDto.class), HttpStatus.OK);
+			else
 				return new ResponseEntity<FuncionarioDto>(HttpStatus.BAD_REQUEST);
 			
-			departamentos.add(departamento.get());
+		} 
+		catch (UsuarioInexsistenteException e) {
+
+			return new ResponseEntity<FuncionarioDto>(HttpStatus.NOT_FOUND);
+		}		
+		catch (DepartamentoInexsistenteException e) {
+
+			return new ResponseEntity<FuncionarioDto>(HttpStatus.CONFLICT);
+		}	
+		catch (CargoInexsistenteException e) {
+
+			return new ResponseEntity<FuncionarioDto>(HttpStatus.CONFLICT);
+		}			
+		catch (ConstraintViolationException e) {
+
+			return new ResponseEntity<FuncionarioDto>(HttpStatus.BAD_REQUEST);
 		}
-		
-		Optional<Cargo> cargo = cargoRepository.findById(newFuncionario.getCargoId());
-		
-		if(!cargo.isPresent())
-			return new ResponseEntity<FuncionarioDto>(HttpStatus.BAD_REQUEST);		
-		
-		return funcionarioRepository.findById(id).map(funcionario -> {
-			funcionario.setNome(newFuncionario.getNome());
-			funcionario.setIdade(newFuncionario.getIdade());
-			funcionario.setDataNascimento(newFuncionario.getDataNascimento());
-			funcionario.setDocumento(newFuncionario.getDocumento());
-			funcionario.setCargo(cargo.get());
-			funcionario.setDepartamentos(departamentos);
-			Funcionario atualizado = funcionarioRepository.save(funcionario);
-			return ResponseEntity.ok().body(modelMapper.map(atualizado, FuncionarioDto.class));
-		}).orElse(ResponseEntity.notFound().build());
 	}
 
 }
