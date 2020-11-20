@@ -32,15 +32,18 @@ public class FuncionarioService {
 	@Autowired
 	private ModelMapper modelMapper;
 	
-	public FuncionarioDto AdicionaFuncionario(AdicionaFunciorioRequestDto request)
-	{
+	public FuncionarioDto AdicionaFuncionario(AdicionaFunciorioRequestDto request) {
+		
+		if(existeFuncionarioComDocumento(request.getDocumento()))
+			return null;
+		
 		Funcionario funcionario = modelMapper.map(request, Funcionario.class);
 		
 		//O mapeamento por algum motivo esta trazendo o valor do cargoId
 		//Por isso estou zerando ele aqui.
 		funcionario.setId(0);
 		
-		funcionario.setIdade(this.GetIdade(request.getDataNascimento()));
+		funcionario.setIdade(this.getIdade(request.getDataNascimento()));
 		
 	    Set<Departamento> departamentos = new HashSet<>();
 		
@@ -66,13 +69,18 @@ public class FuncionarioService {
 		return modelMapper.map(funcionario, FuncionarioDto.class);
 	}
 	
-	private int GetIdade(Date dataNascimento)
-	{
+	private int getIdade(Date dataNascimento) {
 		DateTime dateTime = new DateTime(dataNascimento);
 		DateTime agora = new DateTime();
 
 		int idade = Math.abs(Years.yearsBetween(agora, dateTime).getYears());
 		  
 		return idade;
+	}
+	
+	private Boolean existeFuncionarioComDocumento(String documento) {
+		
+		return funcionarioRepository.existsByDocumento(documento);
+		
 	}
 }

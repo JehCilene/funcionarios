@@ -8,4 +8,5 @@ import com.br.cilene.funcionarios.models.Funcionario;
 @Repository
 public interface FuncionarioRepository extends JpaRepository<Funcionario, Integer> {
 
+	  Boolean existsByDocumento(String documento);
 }
