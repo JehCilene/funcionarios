@@ -44,7 +44,7 @@ public class FuncionarioService {
 		
 		Funcionario funcionario = modelMapper.map(request, Funcionario.class);
 		
-		//O mapeamento por algum motivo esta trazendo o valor do cargoId
+		//O mapeamento por algum motivo esta trazendo o valor do cargoId do request
 		//Por isso estou zerando ele aqui.
 		funcionario.setId(0);
 		
