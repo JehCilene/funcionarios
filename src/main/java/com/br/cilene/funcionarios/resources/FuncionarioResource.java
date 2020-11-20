@@ -32,6 +32,7 @@ import com.br.cilene.funcionarios.models.Funcionario;
 import com.br.cilene.funcionarios.repositories.CargoRepository;
 import com.br.cilene.funcionarios.repositories.DepartamentoRepository;
 import com.br.cilene.funcionarios.repositories.FuncionarioRepository;
+import com.br.cilene.funcionarios.services.FuncionarioService;
 
 @RestController
 @RequestMapping(path = "/funcionario")
@@ -40,6 +41,9 @@ public class FuncionarioResource {
 	private FuncionarioRepository funcionarioRepository;
 	private DepartamentoRepository departamentoRepository;
 	private CargoRepository cargoRepository;
+	
+	@Autowired
+	private FuncionarioService funcionarioService;
 
 	@Autowired
 	private ModelMapper modelMapper;
@@ -56,34 +60,13 @@ public class FuncionarioResource {
 	@PostMapping
 	public ResponseEntity<FuncionarioDto> save(@Valid @RequestBody AdicionaFunciorioRequestDto request) {
 		try {
-			Funcionario funcionario = modelMapper.map(request, Funcionario.class);
+			FuncionarioDto funcionario = funcionarioService.AdicionaFuncionario(request);
 			
-			//O mapeamento por algum motivo esta trazendo o valor do cargoId
-			//Por isso estou zerando ele aqui.
-			funcionario.setId(0);
-			
-			Set<Departamento> departamentos = new HashSet<>();
-			
-			for(Integer id : request.getDepartamentosId())
-			{
-				Optional<Departamento> departamento = departamentoRepository.findById(id);
-				
-				if(!departamento.isPresent())
-					return new ResponseEntity<FuncionarioDto>(HttpStatus.BAD_REQUEST);
-				
-				departamentos.add(departamento.get());
-			}
-			
-			Optional<Cargo> cargo = cargoRepository.findById(request.getCargoId());
-			
-			if(!cargo.isPresent())
+			if(funcionario != null)
+				return new ResponseEntity<>(modelMapper.map(funcionario, FuncionarioDto.class), HttpStatus.OK);
+			else
 				return new ResponseEntity<FuncionarioDto>(HttpStatus.BAD_REQUEST);
 			
-			funcionario.setDepartamentos(departamentos);
-			funcionario.setCargo(cargo.get());
-			
-			funcionarioRepository.save(funcionario);
-			return new ResponseEntity<>(modelMapper.map(funcionario, FuncionarioDto.class), HttpStatus.OK);
 		} catch (ConstraintViolationException e) {
 
 			return new ResponseEntity<FuncionarioDto>(HttpStatus.BAD_REQUEST);

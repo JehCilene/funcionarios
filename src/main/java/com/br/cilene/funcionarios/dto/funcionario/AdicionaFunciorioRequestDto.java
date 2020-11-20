@@ -16,9 +16,6 @@ public class AdicionaFunciorioRequestDto {
 	@Length(min = 5, max = 50)
 	public String nome;
 	
-	@NotNull
-	private int idade;
-	
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	@NotNull
 	private Date dataNascimento;
@@ -38,14 +35,6 @@ public class AdicionaFunciorioRequestDto {
 
 	public void setNome(String nome) {
 		this.nome = nome;
-	}
-
-	public int getIdade() {
-		return idade;
-	}
-
-	public void setIdade(int idade) {
-		this.idade = idade;
 	}
 
 	public Date getDataNascimento() {
